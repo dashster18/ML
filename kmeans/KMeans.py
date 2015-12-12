@@ -1,13 +1,49 @@
 import numpy as np
 
+"""
+K-means clustering: Attemps to group the data points in k different
+clusters based on distance from other points.
+
+Parameters
+----------
+n_clusters : int
+    The number of clusters to assign instances to as well as the 
+    number of centroids to create.
+
+n_initializations : int, optional, default: 10
+    The number of times to try different initializations of KMeans.
+    The final result will be the one that has the best results in
+    terms of minimizing the k-means cost function.
+
+n_iters : int, optional, default : 100
+    Number of times to run the inner loop of k-means. The higher
+    the value, the closer to convergence the algorithm will reach.
+"""
 class KMeans:
-    def __init__(self, n_clusters, n_initalizations, n_iters=100):
+    def __init__(self, n_clusters, n_initalizations=10, n_iters=100):
         self.n_clusters = n_clusters
         self.n_initalizations = n_initalizations
         self.n_iters = n_iters
         self.best_cost = None
         self.best_clusters = None
 
+
+    """
+    Computes the distance between each cluster for all data points
+    
+    Parameters
+    ----------
+    data : array-like, shape=(n_samples, n_features)
+        The data to train the algorithm on
+
+    clusters : array_like, shape=(n_clusters, n_features)
+        Each row i is a vector representation of cluster i
+
+    Returns
+    -------
+    dist : array-like, shape=(n_clusters, n_samples)
+        dist[i,j] is the distnace between cluster i and sample j
+    """
     def _dist(self, data, clusters):
         dist = []
         for c in range(clusters.shape[0]):
@@ -15,10 +51,40 @@ class KMeans:
             dist.append(np.sum(diff ** 2, axis=1))
         return np.array(dist)
         
+
+    """
+    Computes the cost in terms of the distance between each sample
+    and the closest cluster to it.
+    
+    Parameters
+    ----------
+    data : array-like, shape=(n_samples, n_features)
+        The data to train the algorithm on
+
+    clusters : array_like, shape=(n_clusters, n_features)
+        Each row i is a vector representation of cluster i
+    """
     def _cost(self, data, clusters):
         dist = self._dist(data, clusters)
         return dist.min(axis=0).mean()
     
+
+    """
+    Runs the k-means algorithm on the data for n_iters 
+
+    Parameters
+    ----------
+    data : array-like, shape=(n_samples, n_features)
+        The data to train the algorithm on
+
+    clusters : array_like, shape=(n_clusters, n_features)
+        Each row i is a vector representation of cluster i
+    
+    Returns
+    -------
+    clusters : array-like, shape=(n_clusters, n_features)
+        The best cluster arrangement found 
+    """
     def _kmeans(self, data, clusters):
         for _ in range(self.n_iters):
 
@@ -34,6 +100,15 @@ class KMeans:
                 
         return clusters
 
+
+    """
+    Train the algorithm on compute the k different centroids
+    
+    Parameters
+    ----------
+    data : array-like, shape=(n_samples, n_features)
+        The data to train the algorithm on
+    """
     def train(self, data):
         self.n_features = data.shape[1]
 
@@ -59,6 +134,15 @@ class KMeans:
         self.saved_costs = None
         
 
+    """
+    Predict the closest cluster that each example in 'data'
+    belongs to.
+
+    Parameters
+    ----------
+    data : array-like, shape=(n_samples, n_features)
+        New data to predict on.
+    """
     def predict(self, data):
         if self.best_clusters is None:
             raise Error("KMeans hasn't been trained yet!")
